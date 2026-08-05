@@ -12,6 +12,20 @@ interface Payload {
   options?: PDFOptions;
 }
 
+const omitNullishPdfOptions = (options: PDFOptions): PDFOptions => {
+  const sanitizedOptions = Object.fromEntries(
+    Object.entries(options).filter(([, value]) => value !== null && value !== undefined),
+  ) as PDFOptions;
+
+  if (sanitizedOptions.margin && typeof sanitizedOptions.margin === 'object') {
+    sanitizedOptions.margin = Object.fromEntries(
+      Object.entries(sanitizedOptions.margin).filter(([, value]) => value !== null && value !== undefined),
+    );
+  }
+
+  return sanitizedOptions;
+};
+
 /**
  * PDF Generator Service using dependency injection pattern
  * This allows for better testing and control over the Puppeteer library
@@ -77,7 +91,7 @@ export class PdfGeneratorService {
       const pdfOptions: PDFOptions = {
         format: 'A4',
         printBackground: true,
-        ...options,
+        ...omitNullishPdfOptions(options),
       };
 
       // Generate PDF buffer
